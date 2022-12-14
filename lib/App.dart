@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:language_picker/languages.dart';
@@ -81,15 +83,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   save() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String jsonTranslations = translations.map((translation) => translation.toJson()).toList().toString();
-    prefs.setString('savedTranslations', jsonTranslations);
+    List<Map<String, dynamic>> jsonTranslations =
+    translations.map((translation) => translation.toJson()).toList();
+    String jsonString = json.encode(jsonTranslations);
+    prefs.setString('savedTranslations', jsonString);
   }
 
-  void load() async {
+  Future<void> load() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? translat = prefs.getString('savedTranslations');
-    //var translationz = json.decode(translat!);
-    //List<Translate> translationsDecoded = List<Translate>.from(translationz.map((translation)=> Translate.fromJson(translation)));
+    String? jsonTranslations = prefs.getString('savedTranslations');
+    if (jsonTranslations != null) {
+      print("Loading from sharedprefs");
+      List<dynamic> jsonList = await json.decode(jsonTranslations);
+      List<Translate> loadedTranslations = jsonList.map((json) => Translate.fromJson(json)).toList();
+      translations = loadedTranslations;
+      print(translations);
+    }
+  }
+
+
+    bool existsAsFavourite(Translate currentTranslation) {
+    if (translations.any((translation) => translation.translated == currentTranslation.translated && translation.isFavourite == true)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool existsInHistory(Translate currentTranslation) {
+    if (translations.any((translation) => translation.translated == currentTranslation.translated)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // Overrides
@@ -99,6 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Start listening to changes.
     myController.addListener(_updateInputText);
+    load();
   }
 
 
@@ -106,104 +133,97 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     //Widgets
-    Widget languageBar() {return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: DropdownButton(
-                itemHeight: 80,
-                value: fromLanguage,
-                icon: const Flexible(child: Icon(Icons.arrow_drop_down)),
-                items: languages.map((language) {
-                  return DropdownMenuItem(
-                    value: language,
-                    child: Text(language.name),
-                  );
-                }).toList(),
-                onChanged: (Language? value) {
-                  setState(() {
-                    fromLanguage = value!;
-                  });
-                },
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.autorenew, color: Colors.black),
-              onPressed: () {
-                invertLanguages();
+    Widget languageBar() {return Padding(
+      padding: EdgeInsets.fromLTRB(5, 0, 0, 5),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: DropdownButton(
+              itemHeight: 80,
+              value: fromLanguage,
+              icon: const Flexible(child: Icon(Icons.arrow_drop_down)),
+              items: languages.map((language) {
+                return DropdownMenuItem(
+                  value: language,
+                  child: Text(language.name),
+                );
+              }).toList(),
+              onChanged: (Language? value) {
+                setState(() {
+                  fromLanguage = value!;
+                });
               },
             ),
-            Flexible(
-              child: DropdownButton(
-                itemHeight: 80,
-                value: toLanguage,
-                icon: const Flexible(child: Icon(Icons.arrow_drop_down)),
-                items: languages.map((language) {
-                  return DropdownMenuItem(
-                    value: language,
-                    child: Text(language.name),
-                  );
-                }).toList(),
-                onChanged: (Language? value) {
-                  setState(() {
-                    toLanguage = value!;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
-    );}
-    Widget inputField() {return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 7, vertical: 15),
-          child: !autoTranslate
-              ? TextField(
-            autocorrect: false,
-            textInputAction: TextInputAction.done,
-            minLines: 10,
-            maxLines: null,
-            controller: myController,
-            // I wanted to use onEditingCompleted because on changed sent many requests to api.
-            onEditingComplete: () async {
-              _translateText(inputText);
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-            decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Write something to translate.'),
-          )
-              : TextField(
-            autocorrect: false,
-            textInputAction: TextInputAction.done,
-            minLines: 10,
-            maxLines: null,
-            controller: myController,
-            // I wanted to use onChanged to have an autotranslate option in the app.
-            onChanged: (value) {
-              Future.delayed(const Duration(milliseconds: 500), () {
-                if (value != inputText) {
-                  _translateText(inputText);
-                } else if (value == '') {
-                  translatedText = '';
-                }
-              });
-            },
-            decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Write something, will translate on the go.'),
           ),
-        ),
-      ],
+          IconButton(
+            icon: Icon(Icons.autorenew, color: Colors.black),
+            onPressed: () {
+              invertLanguages();
+            },
+          ),
+          Flexible(
+            child: DropdownButton(
+              itemHeight: 80,
+              value: toLanguage,
+              icon: const Flexible(child: Icon(Icons.arrow_drop_down)),
+              items: languages.map((language) {
+                return DropdownMenuItem(
+                  value: language,
+                  child: Text(language.name),
+                );
+              }).toList(),
+              onChanged: (Language? value) {
+                setState(() {
+                  toLanguage = value!;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );}
+    Widget inputField() {return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 7, vertical: 15),
+      child: !autoTranslate
+          ? TextField(
+        autocorrect: false,
+        textInputAction: TextInputAction.done,
+        minLines: 10,
+        maxLines: null,
+        controller: myController,
+        // I wanted to use onEditingCompleted because on changed sent many requests to api.
+        onEditingComplete: () async {
+          _translateText(inputText);
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        decoration: const InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: 'Write something to translate.'),
+      )
+          : TextField(
+        autocorrect: false,
+        textInputAction: TextInputAction.done,
+        minLines: 10,
+        maxLines: null,
+        controller: myController,
+        // I wanted to use onChanged to have an autotranslate option in the app.
+        onChanged: (value) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (value != inputText) {
+              _translateText(inputText);
+            } else if (value == '') {
+              translatedText = '';
+            }
+          });
+        },
+        decoration: const InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: 'Write something, will translate on the go.'),
+      ),
     );}
     Widget liveTranslation() {return Card(
       child: Container(
@@ -216,18 +236,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text(toLanguage.name, style: TextStyle(color: Colors.white)),
                 IconButton(
                     onPressed: () {
+                      var currentTranslation = Translate(
+                          fromLanguage.name,
+                          toLanguage.name,
+                          inputText,
+                          translatedText,
+                          true);
                       setState(() {
-                        addToFavourite(Translate(
-                            fromLanguage.name,
-                            toLanguage.name,
-                            inputText,
-                            translatedText,
-                            true));
+                        !existsAsFavourite(currentTranslation) && !existsInHistory(currentTranslation) ?
+                        addToFavourite(currentTranslation) :  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text('Already in the history / favorites.'), duration: Duration(milliseconds: 1200),
+                       ));
                       });
                     },
-                    icon: Icon(Icons.star_border),
-                    color: Colors.white),
-              ],
+                    icon: existsAsFavourite(Translate(
+                        fromLanguage.name,
+                        toLanguage.name,
+                        inputText,
+                        translatedText,
+                        true)) ? Icon(Icons.star, color: Colors.white) : Icon(Icons.star_border, color: Colors.white)
+                )],
             ),
             Text(translatedText,
                 style: TextStyle(fontSize: 25, color: Colors.white)),
@@ -327,16 +355,13 @@ Widget translationHistory() {return Expanded(
                 ],
               ),
             ),
-            body: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Column(
-                children: [
-                  languageBar(),
-                  inputField(),
-                  inputText != '' ? liveTranslation() : Container(),
-                  translationHistory(),
-                ],
-              ),
+            body: Column(
+              children: [
+                languageBar(),
+                inputField(),
+                inputText != '' ? liveTranslation() : Container(),
+                translationHistory(),
+              ],
             ),
         ));
   }
