@@ -18,9 +18,25 @@ class App extends StatelessWidget {
 
 
     return MaterialApp(
-        theme: ThemeData(
+        theme: Theme.of(context).brightness != Brightness.dark ? ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: Colors.white,
+          textTheme:  TextTheme(
+            headline1: TextStyle(color: Colors.black),
+            headline2: TextStyle(color: Colors.black),
+            bodyText2: TextStyle(color: Colors.black),
+            subtitle1: TextStyle(color: Colors.black),
+          ),
+        ) :
+        ThemeData(
+          primarySwatch: Colors.grey,
+          scaffoldBackgroundColor: Colors.black,
+          textTheme:  TextTheme(
+            headline1: TextStyle(color: Colors.white),
+            headline2: TextStyle(color: Colors.white),
+            bodyText2: TextStyle(color: Colors.white),
+            subtitle1: TextStyle(color: Colors.white),
+          ),
         ),
         home: MyHomePage(title: 'Google Translator'),
         debugShowCheckedModeBanner: false);
@@ -51,19 +67,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _translateText(String inputText) async {
-    await translator
-        .translate(inputText,
-        from: fromLanguage.isoCode, to: toLanguage.isoCode)
-        .then((value) {
+    try {
+      var translation = await translator.translate(inputText,
+          from: fromLanguage.isoCode, to: toLanguage.isoCode);
       setState(() {
-        translatedText = value.text;
+        translatedText = translation.text;
         if (!autoTranslate) {
           translations.add(Translate(fromLanguage.name,
               toLanguage.name, inputText, translatedText, false));
           save();
         }
       });
-    });
+    } catch (error) {
+      !autoTranslate ?
+      ScaffoldMessenger.of(context).showSnackBar( SnackBar(
+        content: Text('Language combination not supported yet'), duration: Duration(milliseconds: 1200),
+      )) : print("not supported");
+    }
   }
 
   void resetLive() {
@@ -229,13 +249,15 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: myController,
         // I wanted to use onChanged to have an autotranslate option in the app.
         onChanged: (value) {
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (value != inputText) {
-              _translateText(inputText);
-            } else if (value == '') {
-              translatedText = '';
-            }
-          });
+          if (value == '') {
+            translatedText = '';
+          } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (value != inputText) {
+                _translateText(inputText);
+              }
+            });
+          }
         },
         decoration: const InputDecoration(
             filled: true,
