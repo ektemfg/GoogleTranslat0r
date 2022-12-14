@@ -60,8 +60,17 @@ class _MyHomePageState extends State<MyHomePage> {
         if (!autoTranslate) {
           translations.add(Translate(fromLanguage.name,
               toLanguage.name, inputText, translatedText, false));
+          save();
         }
       });
+    });
+  }
+
+  void resetLive() {
+    print("Reseting Live Translation...");
+    setState(() {
+      inputText = '';
+      translatedText = '';
     });
   }
 
@@ -82,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   save() async {
+    print("Saving to SharedPrefs.");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<Map<String, dynamic>> jsonTranslations =
     translations.map((translation) => translation.toJson()).toList();
@@ -132,6 +142,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     //Widgets
     Widget languageBar() {return Padding(
       padding: EdgeInsets.fromLTRB(5, 0, 0, 5),
@@ -190,13 +203,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ? TextField(
         autocorrect: false,
         textInputAction: TextInputAction.done,
-        minLines: 10,
+        minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 10,
         maxLines: null,
         controller: myController,
         // I wanted to use onEditingCompleted because on changed sent many requests to api.
         onEditingComplete: () async {
           _translateText(inputText);
           FocusManager.instance.primaryFocus?.unfocus();
+        },
+        onChanged: (value) {
+          if ( inputText == '') {
+            resetLive();
+          }
         },
         decoration: const InputDecoration(
             filled: true,
@@ -289,7 +307,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     translations[index].isFavourite
                         ? translations[index].isFavourite = false
                         : translations[index].isFavourite = true;
+
                   });
+                  save();
                 },
                 icon: Icon(Icons.star),
                 color: translations[index].isFavourite == true
@@ -299,8 +319,12 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     };
-Widget translationHistory() {return Expanded(
+Widget translationHistory() {
+  return Expanded(
+
   child: ListView.builder(
+shrinkWrap: true,
+    scrollDirection: Axis.vertical,
       itemCount: translations.length,
       itemBuilder:
           (BuildContext translationContext, int translationItemIndex) {
@@ -332,11 +356,7 @@ Widget translationHistory() {return Expanded(
   ),
 );}
 
-    return GestureDetector(
-        onTap: () {
-          FocusScope.of(context).requestFocus(new FocusNode());
-        },
-        child: Scaffold(
+        return Scaffold(
             appBar: AppBar(
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -355,14 +375,29 @@ Widget translationHistory() {return Expanded(
                 ],
               ),
             ),
-            body: Column(
-              children: [
-                languageBar(),
-                inputField(),
-                inputText != '' ? liveTranslation() : Container(),
-                translationHistory(),
-              ],
-            ),
-        ));
+            body: ListView(
+              shrinkWrap: true,
+              children:[
+                GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).requestFocus(new FocusNode());
+                  },
+                  child: Container(
+                    width:screenWidth,
+                    height: MediaQuery.of(context).orientation == Orientation.landscape ? screenHeight+200 : screenHeight,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        languageBar(),
+                        inputField(),
+                        inputText != '' ? liveTranslation() : Container(),
+                        translationHistory(),
+                      ],
+                    ),
+                  ),
+                ),
+    ],
+              ),
+            );
   }
 }
