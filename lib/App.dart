@@ -37,7 +37,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  ScrollController _scrollController = ScrollController();
 
   // variables are defines in variables.dart to make this page readable.
   // Functions
@@ -203,7 +203,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ? TextField(
         autocorrect: false,
         textInputAction: TextInputAction.done,
-        minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 10,
+        minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 7,
         maxLines: null,
         controller: myController,
         // I wanted to use onEditingCompleted because on changed sent many requests to api.
@@ -376,24 +376,21 @@ shrinkWrap: true,
               ),
             ),
             body: ListView(
-              shrinkWrap: true,
+            shrinkWrap: true,
+              controller: _scrollController,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               children:[
-                GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).requestFocus(new FocusNode());
-                  },
-                  child: Container(
-                    width:screenWidth,
-                    height: MediaQuery.of(context).orientation == Orientation.landscape ? screenHeight+200 : screenHeight,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        languageBar(),
-                        inputField(),
-                        inputText != '' ? liveTranslation() : Container(),
-                        translationHistory(),
-                      ],
-                    ),
+                Container(
+                  width:screenWidth,
+                  height: MediaQuery.of(context).orientation == Orientation.landscape ? screenHeight+100 : screenHeight,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      languageBar(),
+                      inputField(),
+                      inputText != '' ? liveTranslation() : Container(),
+                      translationHistory(),
+                    ],
                   ),
                 ),
     ],
