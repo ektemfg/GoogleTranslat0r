@@ -23,8 +23,8 @@ class App extends StatelessWidget {
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: Colors.white,
         ),
-        darkTheme: ThemeData.dark(), // standard dark theme
-        themeMode: ThemeMode.system, // device controls theme
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.system,
         home: MyHomePage(title: 'Google Translator'),
         debugShowCheckedModeBanner: false);
   }
@@ -44,27 +44,35 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _translationInProgress = false;
   Timer _translationTimer = Timer(Duration.zero, () {});
 
-  // variables are defines in variables.dart to make this page readable.
+  // Most variables are defined in variables.dart to make this page readable.
   // Functions
+
+  // Language Switch
   void invertLanguages() async {
     setState(() {
       Language language1 = fromLanguage;
       Language language2 = toLanguage;
-      String _input = inputText;
-      String _output = translatedText;
       toLanguage = language1;
       fromLanguage = language2;
-      translatedText = _input;
-      inputText = _output;
-      myController.text = _output;
-      _translateText(inputText);
+      //
+      if (inputText != '') {
+        String _input = inputText;
+        String _output = translatedText;
+        translatedText = _input;
+        inputText = _output;
+        myController.text = _output;
+        _translateText(inputText);
+      }
     });
   }
 
+  // Translation function, sending requests to the API
   void _translateText(String inputText) async {
+    // Don't translate if translate is in progress.
     if (_translationTimer != null && _translationTimer.isActive) {
       _translationTimer.cancel();
     }
+    // Lets make 0.5s throttling timer. Don't translate if timer is active.
     _translationTimer = Timer(Duration(milliseconds: 500), () async {
       try {
         var translation = await translator.translate(inputText,
@@ -79,38 +87,44 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         });
       } catch (error) {
+        // If there is error and auto-translate is off, show Snack bar.
+
         !autoTranslate ?
         ScaffoldMessenger.of(context).showSnackBar( SnackBar(
+          //Usually because language pair is not supported by the API, or Input field is empty.
           content: Text('Language combination not supported yet / Empty Input.'), duration: Duration(milliseconds: 1200),
         )) : print("not supported");
       }
     });
   }
 
+  // Reset Live Translation Widget State.
   void resetLive() {
-    print("Reseting Live Translation...");
     setState(() {
       inputText = '';
       translatedText = '';
     });
   }
 
+  // Update inputText variable.
   void _updateInputText() {
     setState(() {
       inputText = myController.text;
     });
   }
 
+  // Add to translationHistory.
   void addToFavourite(Translate translation) {
     translations.add(translation);
     save();
   }
-
+  // Remove from translationHistory.
   void removeFromFavourite(Translate translation) {
     translations.remove(translation);
     save();
   }
 
+  // Save / Update SharedPrefs.
   save() async {
     print("Saving to SharedPrefs.");
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -120,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
     prefs.setString('savedTranslations', jsonString);
   }
 
+  // Load translationHistory from SharedPrefs.
   Future<void> load() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? jsonTranslations = prefs.getString('savedTranslations');
@@ -132,7 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
+    // Check if that translation is in history and favourite?
     bool existsAsFavourite(Translate currentTranslation) {
     if (translations.any((translation) => translation.translated == currentTranslation.translated && translation.isFavourite == true)) {
       return true;
@@ -140,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return false;
     }
   }
-
+ // Check if that translation is in history.
   bool existsInHistory(Translate currentTranslation) {
     if (translations.any((translation) => translation.translated == currentTranslation.translated)) {
       return true;
@@ -156,6 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Start listening to changes.
     myController.addListener(_updateInputText);
+    // Load from SharedPrefs.
     load();
   }
 
@@ -163,16 +179,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Lets get define Screen Width and Height if we need them later.
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    //Widgets
+    /* Unlike having each widget in separate file like before,
+    they are now defined here. It is most due to coding issues I have encountered.
+     */
+    // Widgets:
+
+    // LanguageBar Widget:
     Widget languageBar() {return Padding(
       padding: EdgeInsets.fromLTRB(5, 0, 0, 5),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // FROM LANGUAGE
           Flexible(
             child: DropdownButton(
               itemHeight: 80,
@@ -185,19 +208,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }).toList(),
               onChanged: (Language? value) async {
-                _translateText(inputText);
                 setState(() {
                   fromLanguage = value!;
                 });
+                // Translate on language change if input not empty.
+                if (inputText != '') {
+                  _translateText(inputText);
+                }
               },
             ),
           ),
+          // SWITCH LANGUAGE BUTTON
           IconButton(
             icon: Icon(Icons.autorenew, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
             onPressed: () {
               invertLanguages();
             },
           ),
+          // TO LANGUAGE
           Flexible(
             child: DropdownButton(
               itemHeight: 80,
@@ -210,16 +238,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }).toList(),
               onChanged: (Language? value) async {
-                _translateText(inputText);
                 setState(() {
                   toLanguage = value!;
                 });
+                // Translate on language change if input not empty.
+                if (inputText != '') {
+                  _translateText(inputText);
+                }
               },
             ),
           ),
         ],
       ),
     );}
+    // InputField Widget:
     Widget inputField() {return Padding(
       padding: EdgeInsets.symmetric(horizontal: 7, vertical: 15),
       child: !autoTranslate
@@ -260,12 +292,23 @@ class _MyHomePageState extends State<MyHomePage> {
             });
           }
         },
+        onEditingComplete: () {
+          var currentTranslation = Translate(
+              fromLanguage.name,
+              toLanguage.name,
+              inputText,
+              translatedText,
+              true);
+          addToFavourite(currentTranslation);
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
         decoration:  InputDecoration(
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.white,
             hintText: 'Write something, will translate on the go.', labelStyle: TextStyle(fontSize: 20)),
       ),
     );}
+    // LiveTranslation Card Widget:
     Widget  liveTranslation() {return Card(
       child: Container(
         color: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.blueAccent,
@@ -306,6 +349,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );}
+    // Card Widget for each item shown in translationHistory:
     Widget displayTranslationItem(int index) {
       return Card(
         child: Row(
@@ -342,9 +386,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     };
+    // TranslationHistory Widget:
 Widget translationHistory() {
   return Expanded(
-
   child: ListView.builder(
 shrinkWrap: true,
     scrollDirection: Axis.vertical,
@@ -359,6 +403,7 @@ shrinkWrap: true,
                 removeFromFavourite(item);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: const Text('Translation deleted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                    duration: Duration(milliseconds: 700),
                     action: SnackBarAction(
                         label: 'Undo',
                         onPressed: () {
@@ -379,6 +424,7 @@ shrinkWrap: true,
   ),
 );}
 
+        // App Scaffold Widget / Main Widget combining all the widgets to create UI.
         return Scaffold(
             appBar: AppBar(
               title: Row(
@@ -386,6 +432,7 @@ shrinkWrap: true,
                 children: [
                   Text(widget.title,
                       style: TextStyle(fontWeight: FontWeight.bold)),
+                  // Auto Translate Switch - Changes between manual / auto translation.
                   Text('Auto Translate', style: TextStyle(fontSize: 15)),
                   Switch(
                       activeColor: Colors.white,
@@ -398,6 +445,7 @@ shrinkWrap: true,
                 ],
               ),
             ),
+            // ListView with all widgets combines.
             body: ListView(
             shrinkWrap: true,
               controller: _scrollController,
@@ -405,12 +453,14 @@ shrinkWrap: true,
               children:[
                 Container(
                   width:screenWidth,
+                  // Need different height of container if in landscape to be able to scroll through history.
                   height: MediaQuery.of(context).orientation == Orientation.landscape ? screenHeight+100 : screenHeight,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       languageBar(),
                       inputField(),
+                      // LiveTranslation hidden if no input.
                       inputText != '' ? liveTranslation() : Container(),
                       translationHistory(),
                     ],

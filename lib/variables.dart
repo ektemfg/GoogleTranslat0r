@@ -1,21 +1,14 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:language_picker/languages.dart';
 import 'package:translator/translator.dart';
-
 import 'Translate.dart';
 
 
-// Variables
+// Variables accessible globally.
+
+// Default language list
 var languages = Languages.defaultLanguages;
-Language fromLanguage = Language('en', 'English');
-Language toLanguage = Language('no', 'Norwegian');
-bool autoTranslate = false;
-String inputText = '';
-final myController = TextEditingController();
-final GoogleTranslator translator = GoogleTranslator();
-String translatedText = '';
+// Custom Language List
 List<Language> customLanguages = [
   Languages.afrikaans,
   Languages.albanian,
@@ -137,6 +130,18 @@ List<Language> customLanguages = [
   Languages.yoruba,
   Languages.zulu
 ];
-
+// To and From language variables.
+Language fromLanguage = Language('en', 'English');
+Language toLanguage = Language('no', 'Norwegian');
+// Translation List
 List<Translate> translations = [];
+// Auto translate state
+bool autoTranslate = false;
+// Input text and translated text variables.
+String inputText = '';
+String translatedText = '';
+// Controllers and implementations
+final myController = TextEditingController();
+final GoogleTranslator translator = GoogleTranslator();
+
 

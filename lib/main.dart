@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
         darkTheme: ThemeData.dark(),
+      // System decides current theme.
       themeMode: ThemeMode.system,
       home: App(),
         debugShowCheckedModeBanner: false
