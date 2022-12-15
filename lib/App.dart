@@ -50,8 +50,13 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       Language language1 = fromLanguage;
       Language language2 = toLanguage;
+      String _input = inputText;
+      String _output = translatedText;
       toLanguage = language1;
       fromLanguage = language2;
+      translatedText = _input;
+      inputText = _output;
+      myController.text = _output;
       _translateText(inputText);
     });
   }
@@ -76,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
       } catch (error) {
         !autoTranslate ?
         ScaffoldMessenger.of(context).showSnackBar( SnackBar(
-          content: Text('Language combination not supported yet'), duration: Duration(milliseconds: 1200),
+          content: Text('Language combination not supported yet / Empty Input.'), duration: Duration(milliseconds: 1200),
         )) : print("not supported");
       }
     });
@@ -179,7 +184,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text(language.name),
                 );
               }).toList(),
-              onChanged: (Language? value) {
+              onChanged: (Language? value) async {
+                _translateText(inputText);
                 setState(() {
                   fromLanguage = value!;
                 });
@@ -203,7 +209,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text(language.name),
                 );
               }).toList(),
-              onChanged: (Language? value) {
+              onChanged: (Language? value) async {
+                _translateText(inputText);
                 setState(() {
                   toLanguage = value!;
                 });
