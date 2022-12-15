@@ -18,26 +18,12 @@ class App extends StatelessWidget {
 
 
     return MaterialApp(
-        theme: Theme.of(context).brightness != Brightness.dark ? ThemeData(
+        theme: ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: Colors.white,
-          textTheme:  TextTheme(
-            headline1: TextStyle(color: Colors.black),
-            headline2: TextStyle(color: Colors.black),
-            bodyText2: TextStyle(color: Colors.black),
-            subtitle1: TextStyle(color: Colors.black),
-          ),
-        ) :
-        ThemeData(
-          primarySwatch: Colors.grey,
-          scaffoldBackgroundColor: Colors.black,
-          textTheme:  TextTheme(
-            headline1: TextStyle(color: Colors.white),
-            headline2: TextStyle(color: Colors.white),
-            bodyText2: TextStyle(color: Colors.white),
-            subtitle1: TextStyle(color: Colors.white),
-          ),
         ),
+        darkTheme: ThemeData.dark(), // standard dark theme
+        themeMode: ThemeMode.system, // device controls theme
         home: MyHomePage(title: 'Google Translator'),
         debugShowCheckedModeBanner: false);
   }
@@ -54,6 +40,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   ScrollController _scrollController = ScrollController();
+
 
   // variables are defines in variables.dart to make this page readable.
   // Functions
@@ -191,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.autorenew, color: Colors.black),
+            icon: Icon(Icons.autorenew, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
             onPressed: () {
               invertLanguages();
             },
@@ -236,15 +223,15 @@ class _MyHomePageState extends State<MyHomePage> {
             resetLive();
           }
         },
-        decoration: const InputDecoration(
+        decoration:  InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey : Colors.white,
             hintText: 'Write something to translate.'),
       )
           : TextField(
         autocorrect: false,
         textInputAction: TextInputAction.done,
-        minLines: 10,
+        minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 7,
         maxLines: null,
         controller: myController,
         // I wanted to use onChanged to have an autotranslate option in the app.
@@ -267,7 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );}
     Widget liveTranslation() {return Card(
       child: Container(
-        color: Colors.blueAccent,
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.blueGrey : Colors.blueAccent,
         child: Column(
           children: [
             Row(
