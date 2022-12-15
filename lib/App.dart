@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ScaffoldMessenger.of(context).showSnackBar( SnackBar(
           //Usually because language pair is not supported by the API, or Input field is empty.
           content: Text('Language combination not supported yet / Empty Input.'), duration: Duration(milliseconds: 1200),
-        )) : print("not supported");
+        )) : print("not supported or empty input");
       }
     });
   }
@@ -143,7 +143,6 @@ class _MyHomePageState extends State<MyHomePage> {
       List<dynamic> jsonList = await json.decode(jsonTranslations);
       List<Translate> loadedTranslations = jsonList.map((json) => Translate.fromJson(json)).toList();
       translations = loadedTranslations;
-      print(translations);
     }
   }
 
@@ -285,6 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (value == '') {
             translatedText = '';
           } else {
+            // Translate if text is changed
             Future.delayed(const Duration(milliseconds: 500), () {
               if (value != inputText) {
                 _translateText(inputText);
@@ -311,6 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // LiveTranslation Card Widget:
     Widget  liveTranslation() {return Card(
       child: Container(
+        // Dark mode color will be black45
         color: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.blueAccent,
         child: Column(
           children: [
@@ -396,6 +397,7 @@ shrinkWrap: true,
       itemBuilder:
           (BuildContext translationContext, int translationItemIndex) {
         final item = translations[translationItemIndex];
+        // Translations in history list can be swiped left/right to get deleted.
         return Dismissible(
             key: UniqueKey(),
             onDismissed: (direction) {
@@ -404,6 +406,7 @@ shrinkWrap: true,
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: const Text('Translation deleted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                     duration: Duration(milliseconds: 700),
+                    // Fast fingers can get their translation back if they click Undo button ;-)
                     action: SnackBarAction(
                         label: 'Undo',
                         onPressed: () {
@@ -413,6 +416,7 @@ shrinkWrap: true,
                         })));
               });
             },
+            // Red delete behind the translation when swiping it away.
             background: Container(
                 color: Colors.red,
                 child: const Center(
