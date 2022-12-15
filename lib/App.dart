@@ -213,7 +213,6 @@ class _MyHomePageState extends State<MyHomePage> {
         minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 7,
         maxLines: null,
         controller: myController,
-        // I wanted to use onEditingCompleted because on changed sent many requests to api.
         onEditingComplete: () async {
           _translateText(inputText);
           FocusManager.instance.primaryFocus?.unfocus();
@@ -225,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         decoration:  InputDecoration(
             filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey : Colors.white,
+            fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.white,
             hintText: 'Write something to translate.'),
       )
           : TextField(
@@ -246,21 +245,21 @@ class _MyHomePageState extends State<MyHomePage> {
             });
           }
         },
-        decoration: const InputDecoration(
+        decoration:  InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.white,
             hintText: 'Write something, will translate on the go.'),
       ),
     );}
     Widget liveTranslation() {return Card(
       child: Container(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.blueGrey : Colors.blueAccent,
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.blueAccent,
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(toLanguage.name, style: TextStyle(color: Colors.white)),
+                Text(toLanguage.name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                 IconButton(
                     onPressed: () {
                       var currentTranslation = Translate(
@@ -272,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       setState(() {
                         !existsAsFavourite(currentTranslation) && !existsInHistory(currentTranslation) ?
                         addToFavourite(currentTranslation) :  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text('Already in the history / favorites.'), duration: Duration(milliseconds: 1200),
+                            content: Text('Already in the history / favorites.',  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)), duration: Duration(milliseconds: 1200),
                        ));
                       });
                     },
@@ -303,11 +302,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                        '${translations[index].fromLanguage} -> ${translations[index].toLanguage}'),
+                        '${translations[index].fromLanguage} -> ${translations[index].toLanguage}',style: TextStyle(fontSize: 18)),
                     Text(translations[index].text,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                     Text(translations[index].translated,
-                        style: TextStyle(fontSize: 15)),
+                        style: TextStyle(fontSize: 20)),
                   ],
                 )),
             IconButton(
@@ -344,7 +343,7 @@ shrinkWrap: true,
               setState(() {
                 removeFromFavourite(item);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: const Text('Translation deleted'),
+                    content: const Text('Translation deleted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                     action: SnackBarAction(
                         label: 'Undo',
                         onPressed: () {
