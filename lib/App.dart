@@ -57,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       var translation = await translator.translate(inputText,
           from: fromLanguage.isoCode, to: toLanguage.isoCode);
+      print("API REQUEST TRANSLATE");
       setState(() {
         translatedText = translation.text;
         if (!autoTranslate) {
@@ -248,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
         decoration:  InputDecoration(
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.white,
-            hintText: 'Write something, will translate on the go.'),
+            hintText: 'Write something, will translate on the go.', labelStyle: TextStyle(fontSize: 20)),
       ),
     );}
     Widget  liveTranslation() {return Card(
@@ -304,9 +305,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     Text(
                         '${translations[index].fromLanguage} -> ${translations[index].toLanguage}',style: TextStyle(fontSize: 18)),
                     Text(translations[index].text,
-                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     Text(translations[index].translated,
-                        style: TextStyle(fontSize: 20)),
+                        style: TextStyle(fontSize: 17)),
                   ],
                 )),
             IconButton(
