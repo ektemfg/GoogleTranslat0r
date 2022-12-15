@@ -8,6 +8,7 @@ import 'package:translator/translator.dart';
 
 import 'Translate.dart';
 import 'variables.dart';
+import 'dart:async';
 
 
 class App extends StatelessWidget {
@@ -40,38 +41,45 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   ScrollController _scrollController = ScrollController();
-
+  bool _translationInProgress = false;
+  Timer _translationTimer = Timer(Duration.zero, () {});
 
   // variables are defines in variables.dart to make this page readable.
   // Functions
-  void invertLanguages() {
+  void invertLanguages() async {
     setState(() {
       Language language1 = fromLanguage;
       Language language2 = toLanguage;
       toLanguage = language1;
       fromLanguage = language2;
+      _translateText(inputText);
     });
   }
 
   void _translateText(String inputText) async {
-    try {
-      var translation = await translator.translate(inputText,
-          from: fromLanguage.isoCode, to: toLanguage.isoCode);
-      print("API REQUEST TRANSLATE");
-      setState(() {
-        translatedText = translation.text;
-        if (!autoTranslate) {
-          translations.add(Translate(fromLanguage.name,
-              toLanguage.name, inputText, translatedText, false));
-          save();
-        }
-      });
-    } catch (error) {
-      !autoTranslate ?
-      ScaffoldMessenger.of(context).showSnackBar( SnackBar(
-        content: Text('Language combination not supported yet'), duration: Duration(milliseconds: 1200),
-      )) : print("not supported");
+    if (_translationTimer != null && _translationTimer.isActive) {
+      _translationTimer.cancel();
     }
+    _translationTimer = Timer(Duration(milliseconds: 500), () async {
+      try {
+        var translation = await translator.translate(inputText,
+            from: fromLanguage.isoCode, to: toLanguage.isoCode);
+        print("API REQUEST TRANSLATE");
+        setState(() {
+          translatedText = translation.text;
+          if (!autoTranslate) {
+            translations.add(Translate(fromLanguage.name,
+                toLanguage.name, inputText, translatedText, false));
+            save();
+          }
+        });
+      } catch (error) {
+        !autoTranslate ?
+        ScaffoldMessenger.of(context).showSnackBar( SnackBar(
+          content: Text('Language combination not supported yet'), duration: Duration(milliseconds: 1200),
+        )) : print("not supported");
+      }
+    });
   }
 
   void resetLive() {
@@ -234,7 +242,6 @@ class _MyHomePageState extends State<MyHomePage> {
         minLines: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 7,
         maxLines: null,
         controller: myController,
-        // I wanted to use onChanged to have an autotranslate option in the app.
         onChanged: (value) {
           if (value == '') {
             translatedText = '';
@@ -304,9 +311,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: <Widget>[
                     Text(
                         '${translations[index].fromLanguage} -> ${translations[index].toLanguage}',style: TextStyle(fontSize: 18)),
-                    Text(translations[index].text,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     Text(translations[index].translated,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(translations[index].text,
                         style: TextStyle(fontSize: 17)),
                   ],
                 )),
