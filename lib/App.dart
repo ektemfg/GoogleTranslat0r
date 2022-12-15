@@ -251,7 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
             hintText: 'Write something, will translate on the go.'),
       ),
     );}
-    Widget liveTranslation() {return Card(
+    Widget  liveTranslation() {return Card(
       child: Container(
         color: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.blueAccent,
         child: Column(
@@ -284,9 +284,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 )],
             ),
             Text(translatedText,
-                style: TextStyle(fontSize: 25, color: Colors.white)),
+                style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold)),
             Text(inputText,
-                style: TextStyle(fontSize: 15, color: Colors.white)),
+                style: TextStyle(fontSize: 18, color: Colors.white)),
           ],
         ),
       ),
